@@ -1,0 +1,22 @@
+{
+    "name": "yydick/peas-log",
+    "description": "SeasLog for PHP",
+    "license": "PHP-3.0",
+    "authors": [
+        {
+            "name": "yydick",
+            "email": "yydick@sohu.com"
+        }
+    ],
+    "require": {
+        "php": ">=7.1.0"
+    },
+    "require-dev": {
+        "phpunit/phpunit": "@stable"
+    },
+    "autoload": {
+        "psr-4": {
+            "Spool\\PeasLog\\": "src/"
+        }
+    }
+}
