@@ -1,6 +1,6 @@
 <?php
 
-declare(strict_types = 1);
+declare(strict_types=1);
 /*
  * To change this license header, choose License Headers in Project Properties.
  * To change this template file, choose Tools | Templates
@@ -54,25 +54,25 @@ class Log
         'info' => 6,
         'debug' => 7
     ];
-
+    /**
+     * 私有化构建函数, 禁用
+     */
     private function __construct()
     {
-        
     }
 
     public static function setConfig(LogConfig $config = null)
     {
         if ($config) {
             self::$logConfig = $config;
-        }
-        else if (!self::$logConfig) {
+        } else if (!self::$logConfig) {
             self::$logConfig = new LogConfig();
         }
         if (!self::$requestID) {
-            self::$requestID = uniqid('', TRUE);
+            self::$requestID = uniqid('', true);
         }
     }
-    
+
     public static function __callStatic(string $name, array $arguments): bool
     {
         if (!isset(self::$level[strtolower($name)])) {
@@ -94,7 +94,7 @@ class Log
         }
         $numLevel = self::$level[$level];
         if ($numLevel > self::$logConfig->level) {
-            return FALSE;
+            return false;
         }
         $info = debug_backtrace();
         $callInfo = current($info);
@@ -104,26 +104,26 @@ class Log
         $d = gethostbyname($host);
         $uri = basename($callInfo['file']);
         $method = $callInfo['function'];
-        $remote_ip = $content['remote-ip'] ?? '';
+        $remoteIp = $content['remote-ip'] ?? '';
         $line = $callInfo['line'];
         $file = $callInfo['file'] . ':' . $line;
-        $U = memory_get_usage(TRUE);
-        $u = memory_get_peak_usage(TRUE);
+        $usage = memory_get_usage(true);
+        $pusage = memory_get_peak_usage(true);
         $classInfo = $callInfo['class'];
         $tmpl = str_replace(
-                ['%L', '%M', '%T', '%t', '%Q', '%H', '%P'
-            , '%D', '%R', '%m', '%l', '%F', '%U', '%u', '%C']
-                , [$level, $msg, $time, microtime(TRUE), self::$requestID, $host, $pid
-            , $d, $uri, $method, $remote_ip, $file, $U, $u, $classInfo]
-                , self::$logConfig->defaultTemplate);
+            [
+                '%L', '%M', '%T', '%t', '%Q', '%H', '%P',
+                '%D', '%R', '%m', '%l', '%F', '%U', '%u', '%C'
+            ],
+            [
+                $level, $msg, $time, microtime(true), self::$requestID, $host, $pid,
+                $d, $uri, $method, $remoteIp, $file, $usage, $pusage, $classInfo
+            ],
+            self::$logConfig->defaultTemplate
+        );
         $len = strlen($tmpl);
         $wlen = self::writeLog($logger, $level, $tmpl, $len);
-        if ($len === $wlen) {
-            return TRUE;
-        }
-        else {
-            return FALSE;
-        }
+        return $len === $wlen;
     }
 
     public static function resetFd()
@@ -131,13 +131,13 @@ class Log
         if (self::$logConfig->appender > 0 && self::$logFd) {
             fclose(self::$logFd);
         }
-        self::$logFd = NULL;
+        self::$logFd = null;
         self::$logger = '';
     }
 
     public static function flushBuffer(): bool
     {
-        return self::putBuffer() > 0 ? TRUE : FALSE;
+        return self::putBuffer() > 0 ? true : false;
     }
 
     public static function getBasePath(): string
@@ -152,7 +152,7 @@ class Log
 
     public static function getBufferEnabled(): bool
     {
-        return self::$logConfig->useBuffer ? TRUE : FALSE;
+        return self::$logConfig->useBuffer ? true : false;
     }
 
     public static function getDatetimeFormat(): string
@@ -168,25 +168,25 @@ class Log
     public static function setBashPath(string $path): bool
     {
         self::$logConfig->defaultBasepath = $path;
-        return TRUE;
+        return true;
     }
 
     public static function setDatetimeFormat(string $format): bool
     {
         self::$logConfig->defaultDatetimeFormat = $format;
-        return TRUE;
+        return true;
     }
 
     public static function setLogger(string $logger): bool
     {
         self::$logConfig->defaultLogger = $logger;
-        return TRUE;
+        return true;
     }
 
     public static function setRequestID(string $requestID): bool
     {
         self::$requestID = $requestID;
-        return TRUE;
+        return true;
     }
 
     private static function getFd(string $logger = '', string $level = '')
@@ -197,8 +197,7 @@ class Log
         if (0 === self::$logConfig->appender) {
             self::$logFd = STDOUT;
             self::$logger = '';
-        }
-        elseif (1 === self::$logConfig->appender) {
+        } elseif (1 === self::$logConfig->appender) {
             $fileLogger = self::getFileLogger($logger, $level);
             if (self::$logger != $fileLogger) {
                 try {
@@ -208,8 +207,7 @@ class Log
                     self::doException($exc);
                 }
             }
-        }
-        elseif (2 < self::$logConfig->appender) {
+        } elseif (2 < self::$logConfig->appender) {
             if (!self::$logFd) {
                 self::$logFd = self::getSocketLogger();
             }
@@ -228,14 +226,13 @@ class Log
         if (self::$logConfig->distingFolder) {
             if (!is_dir($fileLogger . $logger)) {
                 try {
-                    mkdir($fileLogger . $logger, 0755, TRUE);
+                    mkdir($fileLogger . $logger, 0755, true);
                 } catch (PedisLogException $exc) {
                     self::doException($exc);
                 }
             }
             $fileLogger .= $logger . DS;
-        }
-        else {
+        } else {
             $fileLogger .= $logger;
         }
         if (self::$logConfig->distingType) {
@@ -243,8 +240,7 @@ class Log
         }
         if (self::$logConfig->distingByHour) {
             $fileLogger .= date('YmdH');
-        }
-        else {
+        } else {
             $fileLogger .= date('Ymd');
         }
         if (self::$logConfig->defaultExt) {
@@ -257,8 +253,7 @@ class Log
     {
         if (self::$logConfig->throwException) {
             throw $exc;
-        }
-        else {
+        } else {
             echo $exc->getTraceAsString();
         }
     }
@@ -269,19 +264,17 @@ class Log
         $errstr = NULL;
         if (2 === self::$logConfig->appender) {
             $protocol = 'tcp://';
-        }
-        elseif (3 === self::$logConfig->appender) {
+        } elseif (3 === self::$logConfig->appender) {
             $protocol = 'udp://';
-        }
-        else {
+        } else {
             return NULL;
         }
         return fsockopen(
-                $protocol . self::$logConfig->remoteHost
-                , self::$logConfig->remotePort
-                , $errno
-                , $errstr
-                , self::$logConfig->remoteTimeout
+            $protocol . self::$logConfig->remoteHost,
+            self::$logConfig->remotePort,
+            $errno,
+            $errstr,
+            self::$logConfig->remoteTimeout
         );
     }
 
@@ -291,7 +284,7 @@ class Log
         $len = $len ?: strlen($msg);
         if (!self::$logConfig->useBuffer) {
             $wlen = fwrite(self::$logFd, $msg, $len);
-            if (FALSE == $wlen) {
+            if (false == $wlen) {
                 throw new PedisLogException(8201, '日志写入失败');
             }
         }
@@ -322,5 +315,4 @@ class Log
         }
         return $len;
     }
-
 }

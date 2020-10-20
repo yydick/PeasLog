@@ -1,6 +1,6 @@
 <?php
 
-declare(strict_types = 1);
+declare(strict_types=1);
 /*
  * To change this license header, choose License Headers in Project Properties.
  * To change this template file, choose Tools | Templates
@@ -35,7 +35,7 @@ class LogConfig
      * 日志存储的默认根路径
      * @var string
      */
-    public $defaultBasepath = PEDIS_ROOT . '/runtime/log';
+    public $defaultBasepath = '/runtime/log';
     /**
      * 时间格式，默认Y-m-d H:i:s
      * @var string
