@@ -35,7 +35,7 @@ use Spool\PeasLog\Exceptions\PedisLogException;
  */
 class Log
 {
-
+    const DS = DIRECTORY_SEPARATOR;
     /**
      * @var LogConfig $logConfig 日志配置
      */
@@ -96,9 +96,10 @@ class Log
         if ($numLevel > self::$logConfig->level) {
             return false;
         }
+        $level = "\033[38;5;2m" . $level . "\033[0m";
         $info = debug_backtrace();
         $callInfo = current($info);
-        $time = date(self::$logConfig->defaultDatetimeFormat);
+        $time = "\033[38;5;2m" . date(self::$logConfig->defaultDatetimeFormat) . "\033[0m";
         $host = gethostname();
         $pid = posix_getpid();
         $d = gethostbyname($host);
@@ -220,8 +221,8 @@ class Log
         if (!is_dir($fileLogger)) {
             throw new PedisLogException(8101, '日志默认目录不可用');
         }
-        if ($fileLogger && DS != substr($fileLogger, -1)) {
-            $fileLogger .= DS;
+        if ($fileLogger && static::DS != substr($fileLogger, -1)) {
+            $fileLogger .= static::DS;
         }
         if (self::$logConfig->distingFolder) {
             if (!is_dir($fileLogger . $logger)) {
@@ -231,7 +232,7 @@ class Log
                     self::doException($exc);
                 }
             }
-            $fileLogger .= $logger . DS;
+            $fileLogger .= $logger . static::DS;
         } else {
             $fileLogger .= $logger;
         }
