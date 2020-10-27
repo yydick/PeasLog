@@ -19,19 +19,19 @@ use Spool\PeasLog\Exceptions\PedisLogException;
 
 /**
  * 记录一条公共日志
- * @method static alert(string $msg='', array $content=[], string $logger='default')
+ * @method static alert(string $msg="", array $content=[], string $logger='default')
  * 记录一条公共日志
- * @method static critical(string $msg='', array $content=[], string $logger='default')
+ * @method static critical(string $msg="", array $content=[], string $logger='default')
  * 记录一条公共日志
- * @method static error(string $msg='', array $content=[], string $logger='default')
+ * @method static error(string $msg="", array $content=[], string $logger='default')
  * 记录一条公共日志
- * @method static warning(string $msg='', array $content=[], string $logger='default')
+ * @method static warning(string $msg="", array $content=[], string $logger='default')
  * 记录一条公共日志
- * @method static notice(string $msg='', array $content=[], string $logger='default')
+ * @method static notice(string $msg="", array $content=[], string $logger='default')
  * 记录一条公共日志
- * @method static info(string $msg='', array $content=[], string $logger='default')
+ * @method static info(string $msg="", array $content=[], string $logger='default')
  * 记录一条公共日志
- * @method static debug(string $msg='', array $content=[], string $logger='default')
+ * @method static debug(string $msg="", array $content=[], string $logger='default')
  */
 class Log
 {
@@ -96,10 +96,12 @@ class Log
         if ($numLevel > self::$logConfig->level) {
             return false;
         }
-        $level = "\033[38;5;2m" . $level . "\033[0m";
+        $level = self::setColor(self::setWidth($level, 7), $numLevel);
+        $msg = self::setColor($msg, $numLevel);
         $info = debug_backtrace();
         $callInfo = current($info);
-        $time = "\033[38;5;2m" . date(self::$logConfig->defaultDatetimeFormat) . "\033[0m";
+        $time = self::setColor(date(self::$logConfig->defaultDatetimeFormat), 6);
+        $mtime = self::setWidth((string) microtime(true), 15);
         $host = gethostname();
         $pid = posix_getpid();
         $d = gethostbyname($host);
@@ -117,14 +119,49 @@ class Log
                 '%D', '%R', '%m', '%l', '%F', '%U', '%u', '%C'
             ],
             [
-                $level, $msg, $time, microtime(true), self::$requestID, $host, $pid,
+                $level, $msg, $time, $mtime, self::$requestID, $host, $pid,
                 $d, $uri, $method, $remoteIp, $file, $usage, $pusage, $classInfo
             ],
-            self::$logConfig->defaultTemplate
+            trim(self::$logConfig->defaultTemplate)
         );
+        $tmpl = PHP_EOL . $tmpl;
         $len = strlen($tmpl);
         $wlen = self::writeLog($logger, $level, $tmpl, $len);
         return $len === $wlen;
+    }
+
+    public static function setWidth(string $info, int $width = 0, string $padString = " ", int $padType = STR_PAD_RIGHT): string
+    {
+        if (!$width) {
+            return $info;
+        }
+        return str_pad($info, $width, $padString, $padType);
+    }
+
+    public static function setColor(string $info, int $level): string
+    {
+        $str = $info;
+        switch ($level) {
+            case 0:
+            case 1:
+            case 2:
+            case 3:
+                $str = "\033[38;5;1m" . $info . "\033[0m";
+                break;
+            case 4:
+                $str = "\033[38;5;3m" . $info . "\033[0m";
+                break;
+            case 5:
+                $str = "\033[38;5;4m" . $info . "\033[0m";
+                break;
+            case 6:
+                $str = "\033[38;5;2m" . $info . "\033[0m";
+                break;
+            case 7:
+                $str = "\033[38;5;5m" . $info . "\033[0m";
+                break;
+        }
+        return $str;
     }
 
     public static function resetFd()
